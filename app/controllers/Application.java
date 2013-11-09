@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import models.Seller;
+
 import play.*;
 import play.mvc.*;
 
@@ -16,7 +18,7 @@ public class Application extends Controller {
         return ok(index.render("Your new application is ready."));
     }
   
-    public static Result getCauses(String causeId) throws SQLException {
+    public static Result getSeller(String id) throws SQLException {
     	String db_url = Play.application().configuration().getString("db.default.url");
     	String uname = Play.application().configuration().getString("db.default.user");
     	String password = Play.application().configuration().getString("db.default.password");
@@ -24,19 +26,19 @@ public class Application extends Controller {
     	
     	String temp = "";
     	
-    	/*ResultSet rs = conn.createStatement().executeQuery("select * from account where cause_id="+causeId);
-    	;
+    	ResultSet rs = conn.createStatement().executeQuery("select * from seller where id="+id);
+    	 
     	while(rs.next()){
             //Retrieve by column name
-            int id  = rs.getInt("cause_id");
-            String name = rs.getString("cause_name");
+            int sellerId  = rs.getInt("id");
+            int price = rs.getInt("price");
             
             //Display values
-            System.out.print("ID: " + id);
-            System.out.print(", Name: " + name);
-            temp = id + name;
+            System.out.print("ID: " + sellerId);
+            System.out.print(", Name: " + price);
+             
          }
-         rs.close(); */
+         rs.close(); 
     	
           return ok((temp));
          
