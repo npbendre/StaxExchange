@@ -8,7 +8,7 @@ import play.data.format.Formats.DateTime;
 import play.db.ebean.Model;
 
 @Entity
-@Table(name="account") //TODO: change the table name 
+@Table(name="seller") //TODO: change the table name 
 public class Seller extends Model {
 
 	@Id
@@ -18,6 +18,9 @@ public class Seller extends Model {
 	
 	public Double  price;
 	
-	public DateTime available_date;
+	public DateTime creationDate;
+	
+	public DateTime expirationDate;
+	
 	
 }
