@@ -137,15 +137,15 @@ public class Application extends Controller {
     	
     	conn.close();
     
-    	long remainingQuantity = seller.getQuantity() - quantity;
+    	long remainingQuantity = seller.getQuantity() - buyer.getQuantity();
     	
     	System.out.println("commitTransaction 2");
     	// seller update 
     	Connection conn1 = getDatabaseConnection();
-    	String updateQuery = "update seller set quantity = " + remainingQuantity + "where uid = '"+ uuid + "'";
+    	String updateQuery = "update seller set quantity = " + remainingQuantity + " where uid = '"+ uuid + "'";
     	System.out.println("Update Query i s- " + updateQuery);
-    	//int updatedRs =  executeSQLUpdateQuery(updateQuery, conn1);
-    	// if(updatedRs == 1) System.out.println("commit 2 success.");
+    	int updatedRs =  executeSQLUpdateQuery(updateQuery, conn1);
+    	if(updatedRs == 1) System.out.println("commit 2 success.");
     	conn1.close();
     	
     }
@@ -171,11 +171,11 @@ public class Application extends Controller {
     	    Buyer prospect = i.next();
     	    System.out.println("P - " + prospect.getQuantity());
     	    System.out.println("S - " + seller.getQuantity());
-    	    if(prospect.getQuantity() < seller.getQuantity())
+    	    if(prospect.getQuantity() <= seller.getQuantity())
     	    {
-    	    	long quants = seller.getQuantity() - prospect.getQuantity();
+    	    	// long quants = seller.getQuantity() - prospect.getQuantity();
     	    	//if(transactId == null) transactId= UUID.randomUUID();
-    	    	commitTransaction(transactUUID, prospect.getPrice(),quants,prospect, seller);
+    	    	commitTransaction(transactUUID, prospect.getPrice(),prospect.getQuantity(),prospect, seller);
     	    }
     	    seller = getSeller(transactUUID);
     	    
