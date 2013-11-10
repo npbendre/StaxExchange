@@ -49,7 +49,7 @@ public class Application extends Controller {
     	Connection conn = getDatabaseConnection();
 
     	String queryStatement = "select * from seller where uid = '" + uuid+"'";
-    	System.out.println(queryStatement);
+    	
     	ResultSet rs = executeSQLQuery(queryStatement, conn);
     	Seller seller = new Seller();
     	
@@ -65,14 +65,10 @@ public class Application extends Controller {
     		
          }
     	
-    	System.out.println("S Id - " + seller.getId());
-    	System.out.println("S Quant - " + seller.getQuantity());
-    	System.out.println("S Price - " + seller.getPrice());
-    	
-         rs.close();
-         conn.close();
+    	rs.close();
+        conn.close();
          
-         return seller;
+        return seller;
     }
     
     
@@ -130,23 +126,19 @@ public class Application extends Controller {
     
     public static void commitTransaction(String uuid, double price, long quantity, Buyer buyer, Seller seller) throws SQLException
     {
-    	System.out.println("commitTransaction 1");
+    	
     	Connection conn = getDatabaseConnection();
     	int rs = executeSQLUpdateQuery("insert into transaction (uuid, seller_id, buyer_id, price, quantity ) values ('"+uuid+"',"+seller.getId()+","+buyer.getId()+","+price+","+quantity+ ")", conn );
-    	if(rs == 1) System.out.println("commit success.");
-    	
     	conn.close();
     
     	long remainingQuantity = seller.getQuantity() - buyer.getQuantity();
     	
-    	System.out.println("commitTransaction 2");
     	// seller update 
-    	Connection conn1 = getDatabaseConnection();
+    	Connection nextConn = getDatabaseConnection();
     	String updateQuery = "update seller set quantity = " + remainingQuantity + " where uid = '"+ uuid + "'";
-    	System.out.println("Update Query i s- " + updateQuery);
-    	int updatedRs =  executeSQLUpdateQuery(updateQuery, conn1);
-    	if(updatedRs == 1) System.out.println("commit 2 success.");
-    	conn1.close();
+    	
+    	int updatedRs =  executeSQLUpdateQuery(updateQuery, nextConn);
+    	nextConn.close();
     	
     }
     
@@ -155,12 +147,8 @@ public class Application extends Controller {
     	
     	String transactUUID = uuid;
     	
-    	if(uuid == null) return ok("param is empty");
-    	
     	Seller seller = getSeller(uuid);
     	double minPriceRequired = seller.getPrice();
-    	// System.out.println("1.");
-    	//System.out.println(minPriceRequired);
     	
     	if(minPriceRequired <=0 ) return ok("Error.");
     	
@@ -169,18 +157,13 @@ public class Application extends Controller {
     	
     	for(Iterator<Buyer> i = listBuyer.iterator(); i.hasNext(); ) {
     	    Buyer prospect = i.next();
-    	    System.out.println("P - " + prospect.getQuantity());
-    	    System.out.println("S - " + seller.getQuantity());
     	    if(prospect.getQuantity() <= seller.getQuantity())
     	    {
-    	    	// long quants = seller.getQuantity() - prospect.getQuantity();
-    	    	//if(transactId == null) transactId= UUID.randomUUID();
     	    	commitTransaction(transactUUID, prospect.getPrice(),prospect.getQuantity(),prospect, seller);
     	    }
     	    seller = getSeller(transactUUID);
     	    
     	}
-    	
     	
     	return ok("success");
     }
