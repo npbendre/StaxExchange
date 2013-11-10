@@ -113,7 +113,9 @@ public class Application extends Controller {
     	
     	Connection conn = getDatabaseConnection();
 
-    	ResultSet rs = executeSQLQuery("select * from buyer where price >= " + price + " and uid = " + uuid, conn);
+    	String getBuyerQuery = "select * from buyer where price >= " + price + " and uid = '" + uuid+"'";
+    	System.out.println("Buyer query : " + getBuyerQuery);
+    	ResultSet rs = executeSQLQuery(getBuyerQuery, conn);
     	
 		List<Buyer> buyerList = new ArrayList<Buyer>();
 		
