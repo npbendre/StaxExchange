@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+import models.Buyer;
 import models.Seller;
 
 import play.*;
@@ -18,29 +21,82 @@ public class Application extends Controller {
         return ok(index.render("Your new application is ready."));
     }
   
-    public static Result getSeller(String id) throws SQLException {
+    public static Connection getDatabaseConnection() throws SQLException {
     	String db_url = Play.application().configuration().getString("db.default.url");
     	String uname = Play.application().configuration().getString("db.default.user");
     	String password = Play.application().configuration().getString("db.default.password");
-    	Connection conn = DriverManager.getConnection(db_url,uname, password);
+    	Connection conn = null;
     	
-    	String temp = "";
+    	try {
+    		conn = DriverManager.getConnection(db_url,uname, password);
+    	}
+    	catch(SQLException e) {
+    		e.printStackTrace();
+    	}
     	
-    	ResultSet rs = conn.createStatement().executeQuery("select * from seller where id="+id);
-    	 
+    	return conn;
+    }
+    
+    
+    public static Seller getSeller(String uuid) throws SQLException
+    {
+    	ResultSet rs = getResultSet("select * from seller where uid = " + uuid);
+    	Seller seller = new Seller();
+    	
     	while(rs.next()){
             //Retrieve by column name
-            int sellerId  = rs.getInt("id");
-            int price = rs.getInt("price");
-            
-            //Display values
-            System.out.print("ID: " + sellerId);
-            System.out.print(", Name: " + price);
-             
+    		
+    		seller.setId(rs.getLong("id"));
+    		seller.setPrice(rs.getDouble("price"));
+    		seller.setQuantity(rs.getLong("quantity"));
+    		seller.setCreationDate(rs.getTimestamp("creationDate"));
+    		seller.setExpirationDate(rs.getTimestamp("creationDate"));
+    		seller.setYear(rs.getInt("year"));
+    		
          }
-         rs.close(); 
     	
-          return ok((temp));
+         rs.close();
+         return seller;
+    }
+    
+    
+    public static ResultSet getResultSet(String query) throws SQLException
+    {
+    	Connection conn = getDatabaseConnection();
+    	
+    	ResultSet rs = null;
+		try {
+			rs = conn.createStatement().executeQuery(query);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return rs;	
+    }
+    
+    
+    public static List<Buyer> getBuyers() throws SQLException {
+    	
+    	ResultSet rs = getResultSet("select * from buyer");
+    	
+		List<Buyer> buyerList = new ArrayList<Buyer>();
+		
+    	while(rs.next()){
+            //Retrieve by column name
+    		Buyer buyer = new Buyer();
+    		buyer.setId(rs.getLong("id"));
+    		buyer.setPrice(rs.getDouble("price"));
+    		buyer.setQuantity(rs.getLong("quantity"));
+    		buyer.setCreationDate(rs.getTimestamp("creationDate"));
+    		buyer.setExpirationDate(rs.getTimestamp("creationDate"));
+    		buyer.setYear(rs.getInt("year"));
+    		buyerList.add(buyer);
+         }
+         rs.close();
+         
+         return buyerList; 
          
     }
+    
+    
 }

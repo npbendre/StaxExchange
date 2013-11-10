@@ -1,26 +1,70 @@
 package models;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import java.sql.Timestamp;
 
-import play.data.format.Formats.DateTime;
-import play.db.ebean.Model;
+public class Seller {
 
-@Entity
-@Table(name="seller") //TODO: change the table name 
-public class Seller extends Model {
-
-	@Id
 	public Long id;
 	
 	public Long quantity;
 	
 	public Double  price;
 	
-	public DateTime creationDate;
+	public Timestamp creationDate;
 	
-	public DateTime expirationDate;
+	public Timestamp expirationDate;
+
+	public int year; 
+	
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
+
+	
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public Long getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(Long quantity) {
+		this.quantity = quantity;
+	}
+
+	public Double getPrice() {
+		return price;
+	}
+
+	public void setPrice(Double price) {
+		this.price = price;
+	}
+
+	public Timestamp getCreationDate() {
+		return creationDate;
+	}
+
+	public void setCreationDate(Timestamp creationDate) {
+		this.creationDate = creationDate;
+	}
+
+	public Timestamp getExpirationDate() {
+		return expirationDate;
+	}
+
+	public void setExpirationDate(Timestamp expirationDate) {
+		this.expirationDate = expirationDate;
+	}
+
 	
 	
 }
