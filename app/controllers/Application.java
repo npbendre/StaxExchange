@@ -45,29 +45,39 @@ public class Application extends Controller {
     
     public static Seller getSeller(String uuid) throws SQLException
     {
-    	ResultSet rs = executeQuery("select * from seller where uid = " + uuid);
+    
+    	Connection conn = getDatabaseConnection();
+
+    	String queryStatement = "select * from seller where uid = '" + uuid+"'";
+    	System.out.println(queryStatement);
+    	ResultSet rs = executeSQLQuery(queryStatement, conn);
     	Seller seller = new Seller();
     	
     	while(rs.next()){
             //Retrieve by column name
     		
     		seller.setId(rs.getLong("id"));
-    		seller.setPrice(rs.getDouble("price"));
     		seller.setQuantity(rs.getLong("quantity"));
-    		seller.setCreationDate(rs.getTimestamp("creationDate"));
-    		seller.setExpirationDate(rs.getTimestamp("creationDate"));
-    		seller.setYear(rs.getInt("year"));
+    		seller.setPrice(rs.getDouble("price"));
+    		// seller.setCreationDate(rs.getTimestamp("creationDate"));
+    		// seller.setExpirationDate(rs.getTimestamp("creationDate"));
+    		// seller.setYear(rs.getInt("year"));
     		
          }
     	
+    	System.out.println("S Id - " + seller.getId());
+    	System.out.println("S Quant - " + seller.getQuantity());
+    	System.out.println("S Price - " + seller.getPrice());
+    	
          rs.close();
+         conn.close();
+         
          return seller;
     }
     
     
-    public static ResultSet executeQuery(String query) throws SQLException
+    public static ResultSet executeSQLQuery(String query, Connection conn) throws SQLException
     {
-    	Connection conn = getDatabaseConnection();
     	
     	ResultSet rs = null;
 		try {
@@ -79,9 +89,24 @@ public class Application extends Controller {
 		return rs;	
     }
     
-    public static List<Buyer> getBuyers(double price) throws SQLException {
+    public static int executeSQLUpdateQuery(String query, Connection conn) throws SQLException
+    {
     	
-    	ResultSet rs = executeQuery("select * from buyer where price >= " + price);
+    	int rs = 0;
+		try {
+			rs = conn.createStatement().executeUpdate(query);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return rs;	
+    }
+    
+    public static List<Buyer> getBuyers(double price, String uuid) throws SQLException {
+    	
+    	Connection conn = getDatabaseConnection();
+
+    	ResultSet rs = executeSQLQuery("select * from buyer where price >= " + price + " and uid = " + uuid, conn);
     	
 		List<Buyer> buyerList = new ArrayList<Buyer>();
 		
@@ -91,12 +116,13 @@ public class Application extends Controller {
     		buyer.setId(rs.getLong("id"));
     		buyer.setPrice(rs.getDouble("price"));
     		buyer.setQuantity(rs.getLong("quantity"));
-    		buyer.setCreationDate(rs.getTimestamp("creationDate"));
+    		/* buyer.setCreationDate(rs.getTimestamp("creationDate"));
     		buyer.setExpirationDate(rs.getTimestamp("creationDate"));
-    		buyer.setYear(rs.getInt("year"));
+    		buyer.setYear(rs.getInt("year")); */
     		buyerList.add(buyer);
          }
          rs.close();
+         conn.close();
          
          return buyerList; 
          
@@ -104,38 +130,59 @@ public class Application extends Controller {
     
     public static void commitTransaction(String uuid, double price, long quantity, Buyer buyer, Seller seller) throws SQLException
     {
-    	ResultSet rs = executeQuery("insert into transaction (uuid, seller_id, buyer_id, price, quantity ) values ('"+uuid+"',"+seller.getId()+","+buyer.getId()+","+price+","+quantity+ ")");
+    	System.out.println("commitTransaction 1");
+    	Connection conn = getDatabaseConnection();
+    	int rs = executeSQLUpdateQuery("insert into transaction (uuid, seller_id, buyer_id, price, quantity ) values ('"+uuid+"',"+seller.getId()+","+buyer.getId()+","+price+","+quantity+ ")", conn );
+    	if(rs == 1) System.out.println("commit success.");
     	
+    	conn.close();
+    
     	long remainingQuantity = seller.getQuantity() - quantity;
     	
+    	System.out.println("commitTransaction 2");
     	// seller update 
-    	ResultSet updatedRs =  executeQuery("update seller set quantity = " + remainingQuantity + "where id = "+ seller.getId());
+    	Connection conn1 = getDatabaseConnection();
+    	String updateQuery = "update seller set quantity = " + remainingQuantity + "where uid = '"+ uuid + "'";
+    	System.out.println("Update Query i s- " + updateQuery);
+    	//int updatedRs =  executeSQLUpdateQuery(updateQuery, conn1);
+    	// if(updatedRs == 1) System.out.println("commit 2 success.");
+    	conn1.close();
     	
     }
     
     public static Result tradeTaxCredits(String uuid) throws SQLException
     {
-    	Seller seller = getSeller("uuid");
+    	
+    	String transactUUID = uuid;
+    	
+    	if(uuid == null) return ok("param is empty");
+    	
+    	Seller seller = getSeller(uuid);
     	double minPriceRequired = seller.getPrice();
+    	// System.out.println("1.");
+    	//System.out.println(minPriceRequired);
     	
     	if(minPriceRequired <=0 ) return ok("Error.");
     	
-    	List<Buyer> listBuyer = getBuyers(minPriceRequired);
+    	List<Buyer> listBuyer = getBuyers(minPriceRequired, uuid);
     	Collections.sort(listBuyer, Buyer.decending(Buyer.getComparator(BuyerComparator.PRICE_SORT, BuyerComparator.QUANTITY_SORT)));
-    	
-    	UUID transactId = null; 
     	
     	for(Iterator<Buyer> i = listBuyer.iterator(); i.hasNext(); ) {
     	    Buyer prospect = i.next();
+    	    System.out.println("P - " + prospect.getQuantity());
+    	    System.out.println("S - " + seller.getQuantity());
     	    if(prospect.getQuantity() < seller.getQuantity())
     	    {
     	    	long quants = seller.getQuantity() - prospect.getQuantity();
-    	    	if(transactId == null) transactId= UUID.randomUUID();
-    	    	commitTransaction(transactId.toString(), prospect.getPrice(),quants,prospect, seller);
+    	    	//if(transactId == null) transactId= UUID.randomUUID();
+    	    	commitTransaction(transactUUID, prospect.getPrice(),quants,prospect, seller);
     	    }
+    	    seller = getSeller(transactUUID);
+    	    
     	}
     	
-    	return ok(index.render("Your new application is ready."));
+    	
+    	return ok("success");
     }
     
 }
