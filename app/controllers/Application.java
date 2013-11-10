@@ -10,14 +10,25 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import org.codehaus.jackson.JsonNode;
+
 import models.Buyer;
 import models.Buyer.BuyerComparator;
 import models.Seller;
 
 import play.*;
+import play.Play;
 import play.mvc.*;
 
 import views.html.*;
+
+import play.api.libs.ws.Response;
+import play.libs.F;
+import play.libs.F.Promise;
+import play.libs.Json;
+import play.libs.WS;
+import play.api.*;
+
 
 public class Application extends Controller {
   
@@ -164,6 +175,10 @@ public class Application extends Controller {
     	    seller = getSeller(transactUUID);
     	    
     	}
+    	
+    	
+    	String finalUrl = "http://162.243.95.201:8000/marketplace/"+uuid+"/complete";
+    	Promise<play.libs.WS.Response> promise = WS.url(finalUrl).get();
     	
     	return ok("success");
     }
