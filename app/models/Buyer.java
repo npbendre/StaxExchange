@@ -1,6 +1,7 @@
 package models;
 
 import java.sql.Timestamp;
+import java.util.Comparator;
 
 public class Buyer {
 
@@ -64,6 +65,39 @@ public class Buyer {
 		this.expirationDate = expirationDate;
 	}
 
+	public enum BuyerComparator implements Comparator<Buyer> {
+	    PRICE_SORT {
+	        public int compare(Buyer o1, Buyer o2) {
+	            return (o1.getPrice()).compareTo(o2.getPrice());
+	        }},
+	    QUANTITY_SORT {
+	        public int compare(Buyer o1, Buyer o2) {
+	            return o1.getQuantity().compareTo(o2.getQuantity());
+	        }};
+
+	}
 	
-	
+	public static Comparator<Buyer> decending(final Comparator<Buyer> other) {
+		return new Comparator<Buyer>() {
+			public int compare(Buyer o1, Buyer o2) {
+				return -1 * other.compare(o1, o2);
+			}
+	    };
+	}
+	    
+	    public static Comparator<Buyer> getComparator(final BuyerComparator... multipleOptions) {
+	        return new Comparator<Buyer>() {
+	            public int compare(Buyer o1, Buyer o2) {
+	                for (BuyerComparator option : multipleOptions) {
+	                    int result = option.compare(o1, o2);
+	                    if (result != 0) {
+	                        return result;
+	                    }
+	                }
+	                return 0;
+	            }
+	        };
+	    }
+
 }
+
